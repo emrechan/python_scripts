@@ -6,6 +6,33 @@ import win32com.client as win32
 FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 
+class Error(Exception):
+    """Base class for other exceptions"""
+    pass
+
+class StartWordAppError(Error):
+    """Raised when the input value is too small"""
+    def __init__(self, e):
+        Error.__init__(self,e[2])
+    pass
+
+class OpenDocFileError(Error):
+    """Raised when the input value is too small"""
+    def __init__(self, e):
+        Error.__init__(self,e[2])
+
+class SaveAsError(Error):
+    def __init__(self, e):
+        Error.__init__(self,e[2])
+
+class CloseDocFileError(Error):
+    def __init__(self, e):
+        Error.__init__(self,e[2])
+
+class QuitWordAppError(Error):
+    def __init__(self, e):
+        Error.__init__(self,e[2])
+
 class MsWord():
     def __init__(self):        
         self.wordApp = None
@@ -18,9 +45,8 @@ class MsWord():
             self.wordApp = win32.gencache.EnsureDispatch('Word.Application')
             self.wordApp.Visible = False #Keep comment after tests
             self.wordApp.DisplayAlerts = False
-            return True
-        except:
-            return False
+        except Exception as e:
+            raise StartWordAppError(e)
 
     def setFile(self, file):
         self.file = file
@@ -28,10 +54,8 @@ class MsWord():
     def openDocFile(self):
         try:
             self.doc = self.wordApp.Documents.Open(self.file)
-            return True
         except Exception as e:
-            logging.critical(e)
-            return False
+            raise OpenDocFileError(e)
 
     def findTestStepsTable(self):
         if not self.doc.Tables.Count == 2:
@@ -57,9 +81,8 @@ class MsWord():
     def saveFileAs(self, file):
         try:
             self.doc.SaveAs(file)
-            return True
-        except:
-            return False
+        except Exception as e:
+            raise SaveAsError(e)
 
     def save(self):
         try:
@@ -71,13 +94,11 @@ class MsWord():
     def closeDocFile(self):
         try:
             self.doc.Close(SaveChanges=False)
-            return True
-        except:
-            return False
+        except Exception as e:
+            raise CloseDocFileError(e)
 
     def quitWordApp(self):
         try:
             self.wordApp.Application.Quit()
-            return True
-        except:
-            return False
+        except Exception as e:
+            raise QuitWordAppError(e)
