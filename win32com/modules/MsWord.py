@@ -16,8 +16,11 @@ class MsWord():
     def startWordApp(self):
         try:
             self.wordApp = win32.gencache.EnsureDispatch('Word.Application')
+            self.wordApp.Visible = False #Keep comment after tests
+            self.wordApp.DisplayAlerts = False
+            return True
         except:
-            pass
+            return False
 
     def setFile(self, file):
         self.file = file
@@ -25,8 +28,10 @@ class MsWord():
     def openDocFile(self):
         try:
             self.doc = self.wordApp.Documents.Open(self.file)
-        except:
-            pass
+            return True
+        except Exception as e:
+            logging.critical(e)
+            return False
 
     def findTestStepsTable(self):
         if not self.doc.Tables.Count == 2:
@@ -39,9 +44,26 @@ class MsWord():
         if self.table:
             return self.table.Rows.Count
 
+    def FindAndReplace(self, findWhat, replaceWith):
+        self.wordApp.Selection.Find.Execute(findWhat, False, False, False, False, False, \
+                                            True, 1, False, replaceWith, 2)
+
+    def setTrackChangesOff(self):
+        self.doc.TrackRevisions = False
+
+    def setTrackChangesOn(self):
+        self.doc.TrackRevisions = True            
+
     def saveFileAs(self, file):
         try:
             self.doc.SaveAs(file)
+            return True
+        except:
+            return False
+
+    def save(self):
+        try:
+            self.doc.Save()
             return True
         except:
             return False

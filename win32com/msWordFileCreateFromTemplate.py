@@ -25,35 +25,38 @@ def main():
     cp.parse()
     rows = cp.getRows()
     
-    msWord = MsWord.MsWord()
-    msWord.startWordApp()
-    if not msWord.wordApp:
+    msWord = MsWord.MsWord()    
+    logging.debug("Starting MS Word App!")
+    if not msWord.startWordApp():
         logging.critical("Error opening Ms Word App! Exiting...")
         sys.exit(10)
 
     for row in rows:
+        if row[2].upper() == "N":
+            logging.debug("Skipping " + row[1])
+            continue
         msWord.setFile(row[0])
+        logging.debug("Opening " + row[0])
         msWord.openDocFile()
-        if not msWord.doc:
+        if not msWord.openDocFile():
             logging.critical("Error opening file: " + row[0])
             logging.critical("Exiting...")
             msWord.quitWordApp()
             sys.exit(10)
-        isFileSaved = msWord.saveFileAs(row[1])
-        if not isFileSaved:
+        if not msWord.saveFileAs(row[1]):
             logging.critical("Error saving file as: " + row[1])
             logging.critical("Skipping...")
         else:
             logging.info("File saved successfully as: " + row[1])
-        isFileClosed = msWord.closeDocFile()
-        if not isFileClosed:
+        if not msWord.closeDocFile():
             logging.critical("Error closing file " + row[0])
             logging.critical("Exiting...")
             msWord.quitWordApp()
             sys.exit(10)
+        logging.debug("Finished " + row[1])
 
-    isWordAppClosed = msWord.quitWordApp()
-    if not isWordAppClosed:
+    logging.debug("Stopping MS Word App!")
+    if not msWord.quitWordApp():
         logging.critical("Problem closing Word App!")
         exit(10)
 
