@@ -34,17 +34,19 @@ def main():
     rows = cp.getRows()
 
     msWord = MsWord.MsWord()
-    if not msWord.startWordApp():
-        logging.critical("Error opening Ms Word App! Exiting...")
+    try:
+        msWord.startWordApp()
+    except MsWordself.StartWordAppError as e:
+        logging.critical(e)
         sys.exit(10)
 
     msWord.setFile(docFile)
-    msWord.openDocFile()
-    if not msWord.openDocFile():
-        logging.critical("Error opening file: " + docFile)
-        logging.critical("Exiting...")
-        msWord.quitWordApp()
-        sys.exit(10)
+    try:
+        msWord.openDocFile()
+    except MsWord.OpenDocFileError as e:
+        logging.critical(e)
+        logging.info("Skipping " + files[0])
+
     msWord.setTrackChangesOff()
 
     all_reqs = ""
@@ -90,15 +92,24 @@ def main():
     if not msWord.save():
         logging.critical("Error saving file " + docFile)
 
-    if not msWord.closeDocFile():
-        logging.critical("Error closing file " + docFile)
-        logging.critical("Exiting...")
-        msWord.quitWordApp()
-        sys.exit(10)
+    try: 
+        msWord.closeDocFile()
+    except MsWord.CloseDocFileError as e:
+        logging.critical(e)
+        logging.critical("Stoping rest of the process")
+        try:
+            msWord.quitWordApp()
+        except MsWord.QuitWordAppError as e:
+            logging.critical(e)
+            logging.critical("Unrecoverable error!!!")
+            sys.exit(10)
 
-    if not msWord.quitWordApp():
-        logging.critical("Problem closing Word App!")
-        exit(10)
+    try:
+        msWord.quitWordApp()
+    except MsWord.QuitWordAppError as e:
+        logging.critical(e)
+        logging.critical("Unrecoverable error!!!")
+        sys.exit(10)
 
     logging.info("All done!")
 
