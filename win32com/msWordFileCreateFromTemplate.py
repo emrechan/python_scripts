@@ -10,16 +10,20 @@ import sys
 FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 
+def isFileExits(file):
+    if not os.path.isfile(file):
+        return False
+    return True
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file" , required=True, help=".csv file to parse")
     args = parser.parse_args()
 
-    if not os.path.isfile(args.file):
+    if not isFileExits(args.file):
         logging.critical("File not found! Exiting...")
         sys.exit(10)
 
-    
     cp = CsvParser.CsvParser()
     cp.setFile(args.file)    
     cp.parse()
@@ -30,12 +34,18 @@ def main():
         if row[2].upper() == "N":
             logging.debug("Skipping " + row[1])
             continue
-        to_create.append([row[0],row[1]])
+        to_create.append([row[0],row[1],"y"])
     
     if not len(to_create) > 0:
         logging.info("No files to work with!")
         sys.exit(0)
 
+    # Config files checks
+    for files in to_create:
+        confFile = files[1] + ".csv"
+        if not isFileExits(confFile):
+            logging.warning("No configuration file found for " + files[1])
+            files[2] = "n"
 
     msWord = MsWord.MsWord()    
     logging.debug("Starting MS Word App!")
