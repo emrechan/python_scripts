@@ -46,12 +46,46 @@ def checkIfConfigFilesExists(listOfFilesToCreate):
         filesWithExistingConfFile.append(files)
     return filesWithExistingConfFile
 
+def replaceVariables(msWord, variables):
+    logging.info("Replacing variables.")
+    for var in variables:
+        findWhat = "<"+var+">"
+        logging.debug("Find What: " + findWhat)
+        replaceWith = variables[var]
+        logging.debug("Replace With: " + replaceWith)
+        msWord.FindAndReplace(findWhat, replaceWith) 
+
+def replaceRequirements(msWord, requirements):
+    logging.info("Replacing requirements.")
+    allReqs = ""
+    for req in requirements:
+        findWhat = "<?"+req+"?>"
+        logging.debug("Find What: " + findWhat)
+        replaceWith = requirements[req]
+        logging.debug("Replace With: " + replaceWith)
+        msWord.FindAndReplace(findWhat, replaceWith)
+
+    findWhat = "<?all_reqs?>"
+    logging.debug("Find What: " + findWhat)
+    replaceWith = allReqs
+    logging.debug("Replace With: " + replaceWith)
+    msWord.FindAndReplace(findWhat, replaceWith)
+
+def findIfRemoves(msWord, remove):
+    for rm in remove:
+        logging.debug(rm + " = " + remove[rm].upper())
+        if remove[rm].upper() == "TRUE":
+            msWord.findAllRows("<!"+rm+"!>")
+            # while msWord.Find("<!"+rm+"!>"):
+            #     logging.debug("Found one to remove!")
+            #     logging.debug(msWord.Selection().Text)
+
 def doFileModificationOnTemplate(msWord,csvFile):
     msWord.setTrackChangesOff()
 
-    all_reqs = ""
     variables = {}
     requirements = {}
+    delete = {}
 
     logging.info("Parsing csv file.")
     parsedCsvRows = parseCsv(csvFile)
@@ -61,32 +95,15 @@ def doFileModificationOnTemplate(msWord,csvFile):
             variables[row[1]] = row[2]
         elif option == "R":
             requirements[row[1]] = row[2]
+        elif option == "D":
+            delete[row[1]] = row[2]
         else:
             logging.error("Option " + option + " is not a valid option!")
             logging.error("Skipping!")
 
-    logging.info("Replacing variables.")
-    for var in variables:
-        findWhat = "<"+var+">"
-        logging.debug("Find What: " + findWhat)
-        replaceWith = variables[var]
-        logging.debug("Replace With: " + replaceWith)
-        msWord.FindAndReplace(findWhat, replaceWith)
-
-    logging.info("Replacing requirements.")
-    for req in requirements:
-        findWhat = "<?"+req+"?>"
-        logging.debug("Find What: " + findWhat)
-        replaceWith = requirements[req]
-        logging.debug("Replace With: " + replaceWith)
-        msWord.FindAndReplace(findWhat, replaceWith)
-        all_reqs += requirements[req]
-
-    findWhat = "<?all_reqs?>"
-    logging.debug("Find What: " + findWhat)
-    replaceWith = all_reqs
-    logging.debug("Replace With: " + replaceWith)
-    msWord.FindAndReplace(findWhat, replaceWith)
+    #replaceVariables(msWord, variables)
+    #replaceRequirements(msWord, requirements)
+    findIfRemoves(msWord, delete)
 
     msWord.setTrackChangesOn()
 
@@ -97,14 +114,14 @@ def main():
 
     parsedCsvRows = parseCsv(args.file)
 
-    to_create = listFilesToCreateFromTemplate(parsedCsvRows)
-    if not len(to_create) > 0:
+    toCreate = listFilesToCreateFromTemplate(parsedCsvRows)
+    if not len(toCreate) > 0:
         logging.info("No files to work with!")
         sys.exit(0)
 
-    to_create = checkIfConfigFilesExists(to_create)
+    toCreate = checkIfConfigFilesExists(toCreate)
 
-    if not len(to_create) > 0:
+    if not len(toCreate) > 0:
         logging.critical("No configration files available to work with!")
         logging.critical("Stoping...")
         sys.exit(0)
@@ -117,7 +134,7 @@ def main():
         logging.critical(e)
         sys.exit(10)
 
-    for files in to_create:
+    for files in toCreate:
         msWord.setFile(files[0])
         logging.debug("Opening " + files[0])
         try:

@@ -68,6 +68,14 @@ class MsWord():
         if self.table:
             return self.table.Rows.Count
 
+    def Find(self, findWhat):
+        return self.wordApp.Selection.Find.Execute(findWhat, False, False, False, False, \
+                                                   False, True, 1, False, False, 0)
+    # def findAllRows(self, findWhat):
+        
+    def Selection(self):
+        return self.wordApp.Selection
+
     def FindAndReplace(self, findWhat, replaceWith):
         self.wordApp.Selection.Find.Execute(findWhat, False, False, False, False, False, \
                                             True, 1, False, replaceWith, 2)
