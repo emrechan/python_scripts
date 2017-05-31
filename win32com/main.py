@@ -21,7 +21,7 @@ def parseCsv(file):
         sys.exit(10)
 
     cp = CsvParser.CsvParser()
-    cp.setFile(file)    
+    cp.setFile(file)
     cp.parse()
     rows = cp.getRows()
     return rows
@@ -53,7 +53,7 @@ def replaceVariables(msWord, variables):
         logging.debug("Find What: " + findWhat)
         replaceWith = variables[var]
         logging.debug("Replace With: " + replaceWith)
-        msWord.FindAndReplace(findWhat, replaceWith) 
+        msWord.FindAndReplace(findWhat, replaceWith)
 
 def replaceRequirements(msWord, requirements):
     logging.info("Replacing requirements.")
@@ -64,6 +64,7 @@ def replaceRequirements(msWord, requirements):
         replaceWith = requirements[req]
         logging.debug("Replace With: " + replaceWith)
         msWord.FindAndReplace(findWhat, replaceWith)
+        allReqs += requirements[req] + " "
 
     findWhat = "<?all_reqs?>"
     logging.debug("Find What: " + findWhat)
@@ -101,9 +102,9 @@ def doFileModificationOnTemplate(msWord,csvFile):
             logging.error("Option " + option + " is not a valid option!")
             logging.error("Skipping!")
 
-    #replaceVariables(msWord, variables)
-    #replaceRequirements(msWord, requirements)
-    findIfRemoves(msWord, delete)
+    replaceVariables(msWord, variables)
+    replaceRequirements(msWord, requirements)
+    # findIfRemoves(msWord, delete)
 
     msWord.setTrackChangesOn()
 
@@ -126,7 +127,7 @@ def main():
         logging.critical("Stoping...")
         sys.exit(0)
 
-    msWord = MsWord.MsWord()    
+    msWord = MsWord.MsWord()
     logging.debug("Starting MS Word App!")
     try:
         msWord.startWordApp()
@@ -150,7 +151,7 @@ def main():
             continue
         except MsWord.SaveAsError as e:
             logging.critical(e)
-            logging.critical("Couldn't save file " + files[1])            
+            logging.critical("Couldn't save file " + files[1])
         except MsWord.CloseDocFileError as e:
             logging.critical(e)
             logging.critical("Stoping rest of the process")
@@ -162,7 +163,7 @@ def main():
                 sys.exit(10)
         except Exception as e:
             logging.critical("Unknown error: " + str(e))
-            
+
     logging.debug("Stopping MS Word App!")
     try:
         msWord.quitWordApp()

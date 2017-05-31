@@ -4,7 +4,7 @@ import win32com.client as win32
 
 
 FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
-logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+logging.basicConfig(format=FORMAT, level=logging.CRITICAL)
 
 class Error(Exception):
     """Base class for other exceptions"""
@@ -33,8 +33,12 @@ class QuitWordAppError(Error):
     def __init__(self, e):
         Error.__init__(self,e[2])
 
+class TableIndexNotFoundError(Error):
+    def __init__(self, e):
+        Error.__init__(self, e)
+
 class MsWord():
-    def __init__(self):        
+    def __init__(self):
         self.wordApp = None
         self.doc = None
         self.file = None
@@ -57,6 +61,9 @@ class MsWord():
         except Exception as e:
             raise OpenDocFileError(e)
 
+    def getDocument(self):
+        return self.doc
+
     def findTestStepsTable(self):
         if not self.doc.Tables.Count == 2:
             return False
@@ -72,7 +79,7 @@ class MsWord():
         return self.wordApp.Selection.Find.Execute(findWhat, False, False, False, False, \
                                                    False, True, 1, False, False, 0)
     # def findAllRows(self, findWhat):
-        
+
     def Selection(self):
         return self.wordApp.Selection
 
@@ -80,11 +87,17 @@ class MsWord():
         self.wordApp.Selection.Find.Execute(findWhat, False, False, False, False, False, \
                                             True, 1, False, replaceWith, 2)
 
+    def getTable(self,tableIndex):
+        try:
+            return self.doc.Tables.Item(tableIndex)
+        except Exception as e:
+            raise TableIndexNotFoundError(e)
+
     def setTrackChangesOff(self):
         self.doc.TrackRevisions = False
 
     def setTrackChangesOn(self):
-        self.doc.TrackRevisions = True            
+        self.doc.TrackRevisions = True
 
     def saveFileAs(self, file):
         try:
@@ -101,7 +114,7 @@ class MsWord():
 
     def closeDocFile(self):
         try:
-            self.doc.Close(SaveChanges=False)
+            self.doc.Close(SaveChanges=0)
         except Exception as e:
             raise CloseDocFileError(e)
 
