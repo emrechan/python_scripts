@@ -12,12 +12,13 @@ logging.basicConfig(format=FORMAT, level=logging.INFO)
 def findTest(curTable):
     try:
         curText = curTable.Cell(6,6).Range.Text
-        for match in re.finditer(r'<if(.*?)fi>', curText):
+        for match in re.finditer(r'<if.*?\r(.*?)\rfi>', curText, re.DOTALL):
             if "<if false" in match.group(0):
                 curText = curText.replace(match.group(0), "")
             else:
                 curText = curText.replace(match.group(0), match.group(1))
             curTable.Cell(6,6).Range.Text = curText
+            print repr(match.group(0))
     except Exception as e:
         print str(e)
         pass
